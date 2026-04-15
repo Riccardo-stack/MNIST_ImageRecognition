@@ -1,0 +1,14 @@
+# Virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+
+# Downloaded MNIST dataset (users can re-download by running main.py)
+data/
+
+# Trained model weights (users can retrain by running main.py)
+*.pth
+
+# Personal notes
+info.txt
