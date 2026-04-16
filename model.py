@@ -1,12 +1,12 @@
-import torch.nn as nn
-from torch._functorch._aot_autograd.subclass_utils import runtime_unwrap_tensor_subclasses
-from networkx import numeric_assortativity_coefficient
-from random import randint
 import torch
 import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
+from random import randint
+import io
+import base64
+from PIL import Image
 
 class MyNetwork(nn.Module):
     def __init__(self):
@@ -26,9 +26,9 @@ class MyNetwork(nn.Module):
 def load_model():
     model = MyNetwork()
     model.load_state_dict(torch.load('modello_mnist.pth'))
-    model.eval()  # Importante: modalità valutazione
+    model.eval()  # Important: evaluation mode
 
-    # 3. Pick a single image from the test set
+    # Pick a single image from the test set
     transform = transforms.ToTensor()
     test_dataset = torchvision.datasets.MNIST(root='./data', train=False, download=False, transform=transform)
     
@@ -57,8 +57,24 @@ def display(image, real_label):
 
 def predict(model, image):
     with torch.no_grad():
-    # The model expects a "batch", so we add a dimension with .unsqueeze(0)
-    # The image goes from shape (1, 28, 28) to (1, 1, 28, 28)
+        # The model expects a "batch", so we add a dimension with .unsqueeze(0)
+        # The image goes from shape (1, 28, 28) to (1, 1, 28, 28)
         output = model(image.unsqueeze(0))
         _, predicted_digit = torch.max(output, dim=1)
     return predicted_digit
+
+def tensor_to_base64(image_tensor):
+    """Convert a PyTorch image tensor to a base64-encoded PNG string for the web UI."""
+    # Convert tensor (1, 28, 28) to a PIL Image (28, 28)
+    image_array = image_tensor.squeeze().numpy()  # Remove channel dim, convert to numpy
+    image_array = (image_array * 255).astype('uint8')  # Scale from 0-1 back to 0-255
+    pil_image = Image.fromarray(image_array, mode='L')  # 'L' = grayscale
+    
+    # Resize to 140x140 so it's not tiny in the browser
+    pil_image = pil_image.resize((140, 140), Image.NEAREST)
+    
+    # Save to an in-memory buffer as PNG, then encode as base64
+    buffer = io.BytesIO()
+    pil_image.save(buffer, format='PNG')
+    b64_string = base64.b64encode(buffer.getvalue()).decode('utf-8')
+    return b64_string

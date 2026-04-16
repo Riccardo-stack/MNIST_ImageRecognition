@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MNIST Digit Classifier</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 520px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 0.3rem;
+            background: linear-gradient(135deg, #7c5cfc, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #6b6b80;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+
+        .label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #6b6b80;
+            margin-bottom: 0.75rem;
+        }
+
+        /* Digit buttons */
+        .digit-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.6rem;
+            margin-bottom: 2rem;
+        }
+
+        .digit-btn {
+            aspect-ratio: 1;
+            border: 1px solid #1e1e2e;
+            background: #12121a;
+            color: #e0e0e0;
+            font-family: 'Inter', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .digit-btn:hover {
+            background: #1a1a2e;
+            border-color: #7c5cfc;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(124, 92, 252, 0.15);
+        }
+
+        .digit-btn:active {
+            transform: translateY(0);
+        }
+
+        .digit-btn.active {
+            background: #7c5cfc;
+            border-color: #7c5cfc;
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(124, 92, 252, 0.3);
+        }
+
+        /* Result card */
+        .result-card {
+            background: #12121a;
+            border: 1px solid #1e1e2e;
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            min-height: 280px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: border-color 0.3s ease;
+        }
+
+        .result-card.correct {
+            border-color: #22c55e;
+        }
+
+        .result-card.wrong {
+            border-color: #ef4444;
+        }
+
+        .placeholder-text {
+            color: #3a3a4a;
+            font-size: 0.95rem;
+        }
+
+        .mnist-image {
+            border-radius: 8px;
+            border: 2px solid #2a2a3a;
+            margin-bottom: 1.5rem;
+            image-rendering: pixelated;
+        }
+
+        .prediction-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .prediction-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .badge.correct {
+            background: rgba(34, 197, 94, 0.15);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .badge.wrong {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .real-label {
+            color: #6b6b80;
+            font-size: 0.85rem;
+            margin-top: 0.2rem;
+        }
+
+        .loading {
+            color: #6b6b80;
+            font-size: 0.9rem;
+        }
+
+        .loading::after {
+            content: '';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%   { content: ''; }
+            25%  { content: '.'; }
+            50%  { content: '..'; }
+            75%  { content: '...'; }
+            100% { content: ''; }
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 2rem;
+            text-align: center;
+            color: #3a3a4a;
+            font-size: 0.75rem;
+        }
+
+        .footer a {
+            color: #7c5cfc;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MNIST Classifier</h1>
+        <p class="subtitle">Neural network trained on handwritten digits</p>
+
+        <p class="label">Pick a digit</p>
+        <div class="digit-grid">
+            <button class="digit-btn" onclick="classify(0)">0</button>
+            <button class="digit-btn" onclick="classify(1)">1</button>
+            <button class="digit-btn" onclick="classify(2)">2</button>
+            <button class="digit-btn" onclick="classify(3)">3</button>
+            <button class="digit-btn" onclick="classify(4)">4</button>
+            <button class="digit-btn" onclick="classify(5)">5</button>
+            <button class="digit-btn" onclick="classify(6)">6</button>
+            <button class="digit-btn" onclick="classify(7)">7</button>
+            <button class="digit-btn" onclick="classify(8)">8</button>
+            <button class="digit-btn" onclick="classify(9)">9</button>
+        </div>
+
+        <p class="label">Result</p>
+        <div class="result-card" id="resultCard">
+            <p class="placeholder-text">Click a digit above to see the prediction</p>
+        </div>
+
+        <div class="footer">
+            <p>Built with PyTorch & Flask &mdash; <a href="https://github.com/Riccardo-stack/MNIST_ImageRecognition" target="_blank">GitHub</a></p>
+        </div>
+    </div>
+
+    <script>
+        async function classify(digit) {
+            // Highlight active button
+            document.querySelectorAll('.digit-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.digit-btn')[digit].classList.add('active');
+
+            // Show loading state
+            const card = document.getElementById('resultCard');
+            card.className = 'result-card';
+            card.innerHTML = '<p class="loading">Classifying</p>';
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ digit: digit })
+                });
+
+                const data = await response.json();
+
+                const badgeClass = data.correct ? 'correct' : 'wrong';
+                const badgeText = data.correct ? '✓ Correct' : '✗ Wrong';
+
+                card.className = `result-card ${badgeClass}`;
+                card.innerHTML = `
+                    <img class="mnist-image" src="data:image/png;base64,${data.image_b64}" 
+                         alt="MNIST digit" width="140" height="140" />
+                    <div class="prediction-row">
+                        <span class="prediction-number">${data.predicted}</span>
+                        <span class="badge ${badgeClass}">${badgeText}</span>
+                    </div>
+                    <p class="real-label">Real label: ${data.real_label}</p>
+                `;
+            } catch (err) {
+                card.innerHTML = '<p class="placeholder-text">Error — is the server running?</p>';
+            }
+        }
+    </script>
+</body>
+</html>
