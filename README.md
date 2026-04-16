@@ -45,9 +45,22 @@ python predict.py
 ```
 Edit the number inside `choose_number()` in `predict.py` (0–9) to pick a digit category, and the model will classify a random image of that digit.
 
+### 🐳 Run with Docker (Web UI)
+
+If you have Docker installed, you don't need Python or any dependencies. You can run the full web app with just two commands:
+
+```bash
+# Build the image (this will download dependencies and train the model automatically)
+docker build -t mnist-classifier .
+
+# Run the container
+docker run -p 8080:8080 mnist-classifier
+```
+Then open `http://localhost:8080` in your browser to use the interactive web UI!
+
 ## Requirements
 
 - Python 3.10+
 - PyTorch
 - Torchvision
-- Matplotlib
+- Flask (for the web app)

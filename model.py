@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
-import matplotlib.pyplot as plt
 from random import randint
 import io
 import base64
@@ -48,12 +47,6 @@ def choose_number(x, images, test_dataset):
         return image, real_label
     else:
         return "Invalid number: choose a number from 0 to 9"
-
-def display(image, real_label):
-    plt.imshow(image.squeeze(), cmap='gray')  # .squeeze() removes the color channel dimension
-    plt.title(f"Real label: {real_label}")
-    plt.axis('off')
-    plt.show()
 
 def predict(model, image):
     with torch.no_grad():

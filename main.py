@@ -1,7 +1,6 @@
 import torch
 import torchvision
 import torchvision.transforms as transforms
-import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 import torch.optim as optim
 from model import MyNetwork
